@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using workshop.wwwapi.Models;
 
@@ -17,10 +16,31 @@ namespace workshop.wwwapi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //TODO: Appointment Key etc.. Add Here
-            
+            modelBuilder.Entity<Appointment>().HasKey(a => new { a.PatientId, a.DoctorId });
+
 
             //TODO: Seed Data Here
+            modelBuilder.Entity<Patient>().HasData(
+                new Patient { Id = 1, FullName = "Axel" },
+                new Patient { Id = 2, FullName = "Rob" },
+                new Patient { Id = 3, FullName = "Nick" }
+    );
+            modelBuilder.Entity<Doctor>().HasData(
+               new Doctor { Id = 1, FullName = "Kris"},
+               new Doctor { Id = 2, FullName = "Coke"},
+               new Doctor { Id = 3, FullName = "Pope"});
 
+            modelBuilder.Entity<Appointment>().HasData(
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 2 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 3 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 2 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 3 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 1 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 2 }
+
+                );
+
+            base.OnModelCreating(modelBuilder);
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -13,11 +13,23 @@ namespace workshop.wwwapi.Repository
         }
         public async Task<IEnumerable<Patient>> GetPatients()
         {
-            return await _databaseContext.Patients.ToListAsync();
+            List<Patient> patients = await _databaseContext.Patients.ToListAsync();
+            return patients;
+        }
+
+        public async Task<Patient>GetPatientById(int id)
+        {
+            var patient = await _databaseContext.Patients.FirstOrDefaultAsync(x => x.Id == id);
+            return patient;
         }
         public async Task<IEnumerable<Doctor>> GetDoctors()
         {
             return await _databaseContext.Doctors.ToListAsync();
+        }
+        public async Task<Doctor> GetDoctorById(int id)
+        {
+            var doctor = await _databaseContext.Doctors.FirstOrDefaultAsync(x => x.Id == id);
+            return doctor;
         }
         public async Task<IEnumerable<Appointment>> GetAppointmentsByDoctor(int id)
         {
