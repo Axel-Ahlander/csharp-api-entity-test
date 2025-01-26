@@ -9,5 +9,9 @@ namespace workshop.wwwapi.Repository
         Task<IEnumerable<Appointment>> GetAppointmentsByDoctor(int id);
         Task<Patient> GetPatientById(int id);
         Task<Doctor> GetDoctorById(int id);
+        Task<IEnumerable<Appointment>> GetAppointments();
+        Task<Appointment> GetAppointmentById(int id);
+        Task<IEnumerable<Appointment>> GetAppointmentByDoctorId(int id);
+        Task<IEnumerable<Appointment>> GetAppointmentByPatientId(int id);
     }
 }

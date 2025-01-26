@@ -17,6 +17,10 @@ namespace workshop.wwwapi.Endpoints
             surgeryGroup.MapGet("/doctors", GetDoctors);
             surgeryGroup.MapGet("/appointmentsbydoctor/{id}", GetAppointmentsByDoctor);
             surgeryGroup.MapGet("doctors/{id}", GetDoctorById);
+            surgeryGroup.MapGet("/appointments", GetAppointments);
+            surgeryGroup.MapGet("/appointments/{id}", GetAppointmentById);
+            surgeryGroup.MapGet("/appointment/{doctorId}", GetAppointmentsByDoctorId);
+            surgeryGroup.MapGet("/appointmen/{patientId}", GetAppointmentsByPatientId);
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
         public static async Task<IResult> GetPatients(IRepository repository)
@@ -27,12 +31,25 @@ namespace workshop.wwwapi.Endpoints
 
             foreach (Patient patient in patients)
             {
-               
+
                 PatientDTO dto = new PatientDTO
                 {
                     Id = patient.Id,
-                    FullName = patient.FullName 
+                    FullName = patient.FullName,
+                    Appointments = new List<AppointmentDTOwithName>()
                 };
+                IEnumerable<Appointment> appointments = await repository.GetAppointmentByPatientId(patient.Id);
+
+                foreach (Appointment appointment in appointments)
+                {
+                    AppointmentDTOwithName dtoName = new AppointmentDTOwithName();
+                    Doctor doc = await repository.GetDoctorById(appointment.DoctorId);
+                    dtoName.DoctorName = doc.FullName;
+                    dtoName.DoctorId = appointment.DoctorId;
+                    dtoName.Booking = appointment.Booking;
+
+                    dto.Appointments.Add(dtoName);
+                }
 
                 dtos.Add(dto);
             }
@@ -49,8 +66,23 @@ namespace workshop.wwwapi.Endpoints
             PatientDTO dto = new PatientDTO()
             {
                 Id = patients.Id,
-                FullName = patients.FullName
+                FullName = patients.FullName,
+                Appointments = new List<AppointmentDTOwithName>()
             };
+
+            IEnumerable<Appointment> appointments = await repository.GetAppointmentByPatientId(patients.Id);
+            
+            foreach(Appointment appointment in appointments)
+            {
+                AppointmentDTOwithName dtoName = new AppointmentDTOwithName();
+                Doctor doc = await repository.GetDoctorById(appointment.DoctorId);
+                dtoName.DoctorName = doc.FullName;
+                dtoName.DoctorId = appointment.DoctorId;
+                dtoName.Booking = appointment.Booking;
+
+                dto.Appointments.Add(dtoName);
+            }
+                
 
             return TypedResults.Ok(dto);
         }
@@ -69,9 +101,22 @@ namespace workshop.wwwapi.Endpoints
                 DoctorDTO dto = new DoctorDTO
                 {
                     Id = doctor.Id,
-                    FullName = doctor.FullName
+                    FullName = doctor.FullName,
+                    Appointments = new List<AppointmentDTODoctor>()
                 };
 
+                IEnumerable<Appointment> appointments = await repository.GetAppointmentByPatientId(doctor.Id);
+
+                foreach (Appointment appointment in appointments)
+                {
+                    AppointmentDTODoctor dtoName = new AppointmentDTODoctor();
+                    Patient patient = await repository.GetPatientById(appointment.PatientId);
+                    dtoName.Name = patient.FullName;
+                    dtoName.PatientId = appointment.PatientId;
+                    dtoName.Booking = appointment.Booking;
+
+                    dto.Appointments.Add(dtoName);
+                }
                 dtos.Add(dto);
             }
 
@@ -98,5 +143,87 @@ namespace workshop.wwwapi.Endpoints
         {
             return TypedResults.Ok(await repository.GetAppointmentsByDoctor(id));
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public static async Task<IResult> GetAppointments(IRepository repository)
+        {
+            List<AppointmentDTO> dtos = new List<AppointmentDTO>();
+
+            var appointments = await repository.GetAppointments();
+
+            foreach (Appointment appointment in appointments)
+            {
+
+                AppointmentDTO dto = new AppointmentDTO()
+                {
+                    Id = appointment.Appointment_Id,
+                    Booking = appointment.Booking,
+                    DoctorId = appointment.DoctorId,
+                    PatientId = appointment.PatientId
+                };
+
+                dtos.Add(dto);
+            }
+
+            return TypedResults.Ok(dtos);
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public static async Task<IResult> GetAppointmentById(IRepository repository, int id)
+        {
+            var appointment = await repository.GetAppointmentById(id);
+
+           
+            AppointmentDTO dto = new AppointmentDTO()
+            {
+                Id = appointment.Appointment_Id,
+                Booking = appointment.Booking,
+                DoctorId = appointment.DoctorId,
+                PatientId = appointment.PatientId
+            };
+
+            return TypedResults.Ok(dto);
+        }
+        
+
+        public static async Task<IResult> GetAppointmentsByDoctorId(IRepository repository, int doctor_id)
+        {
+            IEnumerable<Appointment> appointments = await repository.GetAppointmentByDoctorId(doctor_id);
+            List<AppointmentDTO> appointmentsDTO = new List<AppointmentDTO>();
+            foreach (Appointment appointment in appointments)
+            {
+                AppointmentDTO dto = new AppointmentDTO()
+                {
+                    Id = appointment.Appointment_Id,
+                    Booking = appointment.Booking,
+                    DoctorId = appointment.DoctorId,
+                    PatientId = appointment.PatientId
+                };
+                appointmentsDTO.Add(dto);
+            }
+
+            return TypedResults.Ok(appointmentsDTO);
+        }
+
+        public static async Task<IResult> GetAppointmentsByPatientId(IRepository repository, int patient_id)
+        {
+            IEnumerable<Appointment> appointments = await repository.GetAppointmentByPatientId(patient_id);
+            List<AppointmentDTO> appointmentsDTO = new List<AppointmentDTO>();
+            foreach (Appointment appointment in appointments)
+            {
+                AppointmentDTO dto = new AppointmentDTO()
+                {
+                    Id = appointment.Appointment_Id,
+                    Booking = appointment.Booking,
+                    DoctorId = appointment.DoctorId,
+                    PatientId = appointment.PatientId
+                };
+                appointmentsDTO.Add(dto);
+            }
+
+            return TypedResults.Ok(appointmentsDTO);
+        }
+
+
     }
 }

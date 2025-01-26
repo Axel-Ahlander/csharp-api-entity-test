@@ -31,12 +31,12 @@ namespace workshop.wwwapi.Data
                new Doctor { Id = 3, FullName = "Pope"});
 
             modelBuilder.Entity<Appointment>().HasData(
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 2 },
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 3 },
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 2 },
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 3 },
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 1 },
-                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 2 }
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 2 , Appointment_Id = 1},
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 1, PatientId = 3, Appointment_Id = 2 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 2, Appointment_Id = 3 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 2, PatientId = 3, Appointment_Id = 4 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 1, Appointment_Id = 5 },
+                new Appointment { Booking = DateTime.UtcNow, DoctorId = 3, PatientId = 2, Appointment_Id = 6 }
 
                 );
 
