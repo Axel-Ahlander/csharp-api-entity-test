@@ -13,6 +13,16 @@ namespace workshop.wwwapi.Models
   
         public int PatientId { get; set; }
         public int Appointment_Id { get; set; }
+        public AppointmentType Type { get; set; } 
 
+        
+        public int PrescriptionId { get;set; }
+        public List<Prescription>prescriptions { get; set; }
+    }
+
+    public enum AppointmentType
+    {
+        InPerson,
+        Online
     }
 }

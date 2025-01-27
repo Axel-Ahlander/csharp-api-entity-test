@@ -1,4 +1,6 @@
-﻿namespace workshop.wwwapi.DTO
+﻿using workshop.wwwapi.Models;
+
+namespace workshop.wwwapi.DTO
 {
     public class AppointmentDTO
     {

@@ -13,6 +13,7 @@ namespace workshop.wwwapi.Models
         public string FullName { get; set; }
         [Column("booking")]
         public List<Appointment> Appointments { get; set; }
+      
 
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System.Drawing;
 using System.Numerics;
+using System.Xml;
 using Microsoft.AspNetCore.Mvc;
+using workshop.wwwapi.Data;
 using workshop.wwwapi.DTO;
 using workshop.wwwapi.Models;
 using workshop.wwwapi.Repository;
@@ -23,6 +25,8 @@ namespace workshop.wwwapi.Endpoints
             surgeryGroup.MapGet("/appointments/{id}", GetAppointmentById);
             surgeryGroup.MapGet("/appointment/{doctorId}", GetAppointmentsByDoctorId);
             surgeryGroup.MapGet("/appointmen/{patientId}", GetAppointmentsByPatientId);
+            surgeryGroup.MapGet("/prescriptions", GetPrescriptions);
+            surgeryGroup.MapPost("/prescriptions/{appointmentId}", CreatePrescription);
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
         public static async Task<IResult> GetPatients(IRepository repository)
@@ -260,6 +264,141 @@ namespace workshop.wwwapi.Endpoints
 
             return TypedResults.Ok(appointmentsDTO);
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public static async Task<IResult> GetPrescriptions(IRepository repository)
+        {
+            List<PrescriptionDTO> dto = new List<PrescriptionDTO>();
+
+            foreach (Prescription prescription in await repository.GetPrescriptions())
+            {
+                PrescriptionDTO DTO = new PrescriptionDTO();
+                //doctor
+                SimplifiedDocDTO doc = new SimplifiedDocDTO();
+                int docid = prescription.DoctorId;
+                Doctor fullname = await repository.GetDoctorById(docid);
+                doc.FullName = fullname.FullName;
+                doc.Id = docid;
+
+                //patient
+                SimplifiedPatientDTO pat = new SimplifiedPatientDTO();
+                int patid = prescription.PatientId;
+                Patient name = await repository.GetPatientById(patid);
+                pat.FullName = name.FullName;
+                pat.Id = patid;
+
+                //Medicine
+                MedicineDTO med = new MedicineDTO();
+                MedicinePrescription pres = await repository.GetMedicinePrescriptionsById(prescription.PrescriptionId);
+                
+                med.MedicineId = pres.MedicineId;
+                med.Instruction = pres.Notes;
+                med.Quantity = pres.Quantity;
+                med.Name = pres.Name;
+
+
+                //Appointment
+                AppointmentDTO appointment = new AppointmentDTO();
+                appointment.Id = prescription.AppointmentId;
+                appointment.DoctorId = prescription.DoctorId;
+                appointment.PatientId = prescription.PatientId;
+                appointment.PatientName = pat.FullName;
+                appointment.DoctorName = doc.FullName;
+                Appointment appe = await repository.GetAppointmentById(prescription.AppointmentId);
+                appointment.Booking = appe.Booking;
+                
+
+                //add all
+                DTO.Id = prescription.PrescriptionId;
+                DTO.doctor = doc;
+                DTO.patient = pat;
+                DTO.appointment = appointment;
+                DTO.medicine = med;
+
+                dto.Add(DTO);
+
+            }
+            return TypedResults.Ok(dto);
+        }
+
+        [ProducesResponseType(200)]
+        public static async Task<IResult> CreatePrescription(IRepository repository, int appointmentId, string name, string instruction, int quantity)
+        {
+            // Initialize a DTO to hold the full prescription info
+            PrescriptionDTO dto = new PrescriptionDTO();
+
+            // Fetch medicines (although this is not directly used for creation in this context)
+            IEnumerable<Medicine> meds = await repository.GetMedicines();
+            
+            Medicine newMed = new Medicine
+            {
+                MedicineId = meds.Count() + 1, 
+                Name =name,
+                Instruction =instruction,
+                Quantity = quantity
+            };
+
+
+            
+
+            Appointment appointment = await repository.GetAppointmentById(appointmentId);
+
+            
+            MedicinePrescription medicinePrescription = new MedicinePrescription
+            {
+                Name = newMed.Name,
+                MedicineId = newMed.MedicineId,
+                Notes = newMed.Instruction,
+                Quantity = newMed.Quantity
+            };
+
+            
+            Prescription prescription = await repository.CreatePrescription(appointment, medicinePrescription);
+
+            
+            SimplifiedDocDTO doctorDto = new SimplifiedDocDTO();
+
+
+
+            Doctor doctor = await repository.GetDoctorById(appointment.DoctorId);
+            doctorDto.FullName = doctor.FullName;
+            doctorDto.Id = doctor.Id;
+
+            SimplifiedPatientDTO patientDto = new SimplifiedPatientDTO();
+            Patient patient = await repository.GetPatientById(appointment.PatientId);
+            patientDto.FullName = patient.FullName;
+            patientDto.Id = patient.Id;
+
+           
+            MedicineDTO medicineDto = new MedicineDTO
+            {
+                MedicineId = newMed.MedicineId,
+                Name = medicinePrescription.Name,
+                Instruction = medicinePrescription.Notes,
+                Quantity = medicinePrescription.Quantity
+            };
+
+            
+            AppointmentDTO appointmentDto = new AppointmentDTO
+            {
+                Id = appointment.Appointment_Id,
+                DoctorId = prescription.DoctorId,
+                PatientId = prescription.PatientId,
+                PatientName = patient.FullName,
+                DoctorName = doctor.FullName,
+                Booking = appointment.Booking
+            };
+
+           
+            dto.Id = prescription.PrescriptionId;
+            dto.doctor = doctorDto;
+            dto.patient = patientDto;
+            dto.appointment = appointmentDto;
+            dto.medicine = medicineDto;
+
+            return TypedResults.Ok(dto);
+        }
+
 
 
     }
